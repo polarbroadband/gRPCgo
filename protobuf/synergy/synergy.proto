@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option go_package = "protobuf/synergy";
+
+package synergy;
+
+// rgw global service
+service Controller {
+  // healthckeck
+  rpc Healtz (Request) returns (SvrStat) {}
+  // request to create runner
+  rpc CreateRunner (RunnerRequest) returns (SvcStat) {}
+  rpc ConnectRunner (RunnerUpdate) returns (stream RunnerOutput) {}
+  rpc JoinRunner (RunnerUpdate) returns (stream RunnerOutput) {}
+  rpc StartRunner (RunnerUpdate) returns (OprStat) {}
+  rpc StopRunner (RunnerUpdate) returns (OprStat) {}
+  rpc UpdateRunner (RunnerUpdate) returns (OprStat) {}
+  // worker regist
+  rpc RegistWorker (SvrStat) returns (OprStat) {}
+}
+
+// wkr global service
+service Worker {
+  // worker healthckeck
+  rpc Healtz (Request) returns (SvrStat) {}
+  // runner healthckeck
+  rpc RunnerHealtz (RunnerRequest) returns (SvcStat) {}
+  // request to create runner
+  rpc CreateRunner (RunnerRequest) returns (SvcStat) {}
+  rpc ConnectRunner (RunnerUpdate) returns (stream RunnerOutput) {}
+  rpc StartRunner (RunnerUpdate) returns (OprStat) {}
+  rpc StopRunner (RunnerUpdate) returns (OprStat) {}
+  rpc UpdateRunner (RunnerUpdate) returns (OprStat) {}
+}
+// rgw runner service
+//service Runner {
+  // get stream of runner output
+  //rpc Connect (RunnerRequest) returns (stream RunnerOutput) {}
+  //rpc Start (RunnerRequest) returns (SvcStat) {}
+  //rpc Stop (RunnerRequest) returns (SvcStat) {}
+  //rpc Update (RunnerRequest) returns (SvcStat) {}
+//}
+
+message RunnerRequest {
+  string ID = 1;
+  string Task = 2;
+}
+
+message RunnerUpdate {
+  string ID = 1;
+  int64 Factor = 2;
+}
+
+message RunnerOutput {
+  string Msg = 1;
+}
+
+message SvcStat {
+  string ID = 1;
+  bool Healtz = 2;
+  string State = 3;
+  string Error = 4;
+}
+
+message SvrStat {
+  string Host = 1;
+  int64 Load = 2;
+  string Release = 9;
+  repeated SvcStat Instances = 3;
+}
+
+message OprStat {
+  string State = 1;
+}
+
+message Request {
+  string State = 1;
+}

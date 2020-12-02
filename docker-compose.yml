@@ -1,0 +1,107 @@
+version: '3.3'
+
+services:
+
+  mongo_data:
+    image: mongo:4.2
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dev
+      MONGO_INITDB_ROOT_PASSWORD: dev
+    restart: always
+
+  mongo_express_data:
+    image: mongo-express:0.54
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_SITE_BASEURL: /
+      ME_CONFIG_MONGODB_SERVER: mongo_data
+      ME_CONFIG_BASICAUTH_USERNAME: dev
+      ME_CONFIG_BASICAUTH_PASSWORD: dev
+      ME_CONFIG_MONGODB_ADMINUSERNAME: dev
+      ME_CONFIG_MONGODB_ADMINPASSWORD: dev
+    depends_on:
+      - "mongo_data"
+
+  rgw:
+    build:
+      context: ./rgw
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./rgw:/appsrc
+      - ./protobuf:/appsrc/vendor/protobuf
+    environment:
+      CRED_UID_DATA: dev
+      CRED_PWD_DATA: dev
+      HOST_DATA_DB: mongo_data
+      HOST: rgw
+      CRED_UID_DATA: dev
+    depends_on:
+      - "mongo_data"
+    command: tail -f /dev/null
+  
+  wkr1:
+    build:
+      context: ./wkr
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./wkr:/appsrc
+      - ./protobuf:/appsrc/vendor/protobuf
+    environment:
+      CRED_UID_DATA: dev
+      CRED_PWD_DATA: dev
+      HOST_DATA_DB: mongo_data
+      RGW: rgw
+      WKR: wkr1
+    depends_on:
+      - "mongo_data"
+      - "rgw"
+    command: tail -f /dev/null
+
+  ct1:
+    build:
+      context: ./ct
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./ct:/appsrc
+      - ./protobuf:/appsrc/vendor/protobuf
+    environment:
+      RGW: rgw
+      FACTOR: 10
+    depends_on:
+      - "rgw"
+    command: tail -f /dev/null
+  
+  wkr2:
+    build:
+      context: ./wkr
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./wkr:/appsrc
+      - ./protobuf:/appsrc/vendor/protobuf
+    environment:
+      CRED_UID_DATA: dev
+      CRED_PWD_DATA: dev
+      HOST_DATA_DB: mongo_data
+      RGW: rgw
+      WKR: wkr2
+    depends_on:
+      - "mongo_data"
+      - "rgw"
+    command: tail -f /dev/null
+
+  ct2:
+    build:
+      context: ./ct
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./ct:/appsrc
+      - ./protobuf:/appsrc/vendor/protobuf
+    environment:
+      RGW: rgw
+      FACTOR: 100
+    depends_on:
+      - "rgw"
+    command: tail -f /dev/null

@@ -1,0 +1,6 @@
+FROM golang:1.15.5
+
+EXPOSE 50051
+
+WORKDIR /appsrc/main
+CMD go run -mod=vendor .
